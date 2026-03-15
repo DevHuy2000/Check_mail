@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FF TOOL · Garena Account Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════ RESET & ROOT ══════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080c10;
+  --bg2:       #0d1117;
+  --bg3:       #111820;
+  --panel:     #0e151e;
+  --border:    #1a2d3e;
+  --border2:   #22384f;
+  --cyan:      #00e5ff;
+  --cyan-dim:  #0097a7;
+  --cyan-glow: rgba(0,229,255,0.15);
+  --green:     #00ff88;
+  --green-dim: #00c853;
+  --red:       #ff3d5a;
+  --orange:    #ff9800;
+  --yellow:    #ffe57a;
+  --text:      #c8d8e8;
+  --text-dim:  #6a8090;
+  --text-bright:#e8f4ff;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-ui:   'Rajdhani', sans-serif;
+  --font-head: 'Orbitron', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══════════════════ SCANLINES + NOISE ══════════════════ */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.07) 2px,
+    rgba(0,0,0,0.07) 4px
+  );
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+/* ══════════════════ LAYOUT ══════════════════ */
+.wrapper {
+  position: relative; z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px 80px;
+}
+
+/* ══════════════════ HEADER ══════════════════ */
+header {
+  padding: 32px 0 24px;
+  text-align: center;
+  position: relative;
+}
+.header-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--cyan-dim);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+h1 {
+  font-family: var(--font-head);
+  font-size: clamp(22px, 6vw, 40px);
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: var(--text-bright);
+  text-shadow: 0 0 30px var(--cyan-glow), 0 0 60px rgba(0,229,255,0.08);
+  line-height: 1.1;
+}
+h1 span { color: var(--cyan); }
+.header-sub {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+.header-line {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 20px;
+}
+.header-line::before, .header-line::after {
+  content: ''; flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border2), transparent);
+}
+.header-line-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  white-space: nowrap;
+}
+
+/* ══════════════════ TAB NAV ══════════════════ */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 24px 0 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  transition: all .2s;
+  white-space: nowrap;
+  user-select: none;
+  background: transparent;
+}
+.tab:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.tab.active {
+  color: var(--cyan);
+  background: var(--panel);
+  border-color: var(--border2);
+  border-bottom-color: var(--panel);
+  margin-bottom: -1px;
+}
+
+/* ══════════════════ PANELS ══════════════════ */
+.panel {
+  display: none;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 28px 24px;
+  animation: fadeIn .25s ease;
+}
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.panel-title {
+  font-family: var(--font-head);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--cyan-dim);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel-title::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+
+/* ══════════════════ FORM ELEMENTS ══════════════════ */
+.field { margin-bottom: 16px; }
+label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 7px;
+  text-transform: uppercase;
+}
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 11px 14px;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  -webkit-appearance: none;
+}
+input:focus, textarea:focus {
+  border-color: var(--cyan-dim);
+  box-shadow: 0 0 0 3px var(--cyan-glow);
+}
+input::placeholder, textarea::placeholder {
+  color: var(--text-dim);
+  opacity: 0.5;
+}
+
+/* ══════════════════ BUTTONS ══════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 24px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .2s;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+  transition: opacity .2s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: linear-gradient(135deg, #005f73, #0097a7);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0,151,167,0.25);
+}
+.btn-primary:hover { box-shadow: 0 4px 24px rgba(0,229,255,0.4); filter: brightness(1.1); }
+.btn-danger {
+  background: linear-gradient(135deg, #7b1a2a, #c62828);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(198,40,40,0.25);
+}
+.btn-danger:hover { filter: brightness(1.1); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
+.btn-ghost:hover { border-color: var(--cyan-dim); color: var(--cyan); }
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+/* ══════════════════ RESULT BOX ══════════════════ */
+.result-box {
+  margin-top: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: none;
+}
+.result-box.visible { display: block; animation: fadeIn .3s ease; }
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.result-head-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.result-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+.result-status.ok  { color: var(--green); }
+.result-status.err { color: var(--red); }
+.result-body { padding: 18px 16px; }
+
+/* ── Info rows ── */
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.info-row:last-child { border-bottom: none; }
+.info-key {
+  flex-shrink: 0;
+  width: 130px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  padding-top: 1px;
+}
+.info-val {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-bright);
+  word-break: break-all;
+}
+.info-val.green { color: var(--green); }
+.info-val.red   { color: var(--red); }
+.info-val.cyan  { color: var(--cyan); }
+.info-val.yellow{ color: var(--yellow); }
+
+/* ── Token display ── */
+.token-display {
+  background: var(--bg2);
+  border: 1px solid var(--green-dim);
+  border-radius: 6px;
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--green);
+  word-break: break-all;
+  position: relative;
+  margin-top: 8px;
+}
+.copy-btn {
+  position: absolute; top: 8px; right: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: all .2s;
+}
+.copy-btn:hover { border-color: var(--cyan-dim); color: var(--cyan); }
+
+/* ── Platform chips ── */
+.platform-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.platform-item {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.platform-info { flex: 1; min-width: 0; }
+.platform-name {
+  font-family: var(--font-head);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--cyan);
+  margin-bottom: 4px;
+}
+.platform-uid {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  word-break: break-all;
+}
+.platform-nick { color: var(--yellow); font-size: 12px; margin-top: 2px; }
+.btn-unbind {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 11px;
+  background: rgba(198,40,40,0.15);
+  border: 1px solid rgba(198,40,40,0.4);
+  color: var(--red);
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: all .2s;
+}
+.btn-unbind:hover { background: rgba(198,40,40,0.3); border-color: var(--red); }
+
+/* ── Step indicator ── */
+.steps {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  position: relative;
+}
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 16px; left: 16px; right: 16px;
+  height: 1px;
+  background: var(--border2);
+  z-index: 0;
+}
+.step-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+.step-dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  transition: all .3s;
+}
+.step-item.active   .step-dot { border-color: var(--cyan); color: var(--cyan); background: var(--bg2); box-shadow: 0 0 12px var(--cyan-glow); }
+.step-item.done     .step-dot { border-color: var(--green); color: var(--bg); background: var(--green); }
+.step-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+.step-item.active .step-label { color: var(--cyan); }
+.step-item.done   .step-label { color: var(--green); }
+
+/* ══════════════════ LOADER ══════════════════ */
+.loader {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.loader span {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: blink 1.2s infinite;
+}
+.loader span:nth-child(2) { animation-delay: .2s; }
+.loader span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100% { opacity: .2; } 40% { opacity: 1; } }
+
+/* ══════════════════ ALERT ══════════════════ */
+.alert {
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin-top: 12px;
+  display: none;
+  animation: fadeIn .2s ease;
+}
+.alert.visible { display: flex; align-items: center; gap: 10px; }
+.alert-success { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.25); color: var(--green); }
+.alert-error   { background: rgba(255,61,90,0.08);  border: 1px solid rgba(255,61,90,0.25);  color: var(--red); }
+.alert-info    { background: rgba(0,229,255,0.08);  border: 1px solid rgba(0,229,255,0.2);   color: var(--cyan); }
+
+/* ══════════════════ FOOTER ══════════════════ */
+footer {
+  text-align: center;
+  padding: 32px 0 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+}
+
+/* ══════════════════ MODAL CONFIRM ══════════════════ */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; animation: fadeIn .2s ease; }
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 28px 24px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.modal-title {
+  font-family: var(--font-head);
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: var(--red);
+  margin-bottom: 16px;
+}
+.modal-body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.modal-body strong { color: var(--cyan); font-family: var(--font-mono); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ══════════════════ RESPONSIVE ══════════════════ */
+@media (max-width: 600px) {
+  .panel { padding: 20px 16px; }
+  .tab   { padding: 9px 12px; font-size: 11px; }
+  .info-key { width: 100px; }
+  .steps::before { left: 12px; right: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-badge">▸ GARENA ACCOUNT MANAGER ◂</div>
+    <h1>FREE<span>FIRE</span> TOOL</h1>
+    <div class="header-sub">v2.0 · WEB EDITION · SECURE</div>
+    <div class="header-line"><span class="header-line-text">SELECT FUNCTION</span></div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="bind-info">ℹ️ Info Bind</div>
+    <div class="tab" data-tab="change-bind">🔄 Đổi Bind</div>
+    <div class="tab" data-tab="unbind-email">🔓 Gỡ Bind</div>
+    <div class="tab" data-tab="cancel-bind">✖️ Hủy Bind</div>
+    <div class="tab" data-tab="logout">🚪 Logout</div>
+    <div class="tab" data-tab="eat-convert">🔑 EAT→AT</div>
+    <div class="tab" data-tab="check-platform">🔗 Check Link</div>
+  </div>
+
+  <!-- ══════════ PANEL: BIND INFO ══════════ -->
+  <div class="panel active" id="panel-bind-info">
+    <div class="panel-title">📋 Xem Thông Tin Bind Email</div>
+    <div class="field">
+      <label>Access Token</label>
+      <input type="password" id="bi-token" placeholder="Dán access token vào đây...">
+    </div>
+    <button class="btn btn-primary btn-full" id="bi-btn" onclick="doBindInfo()">
+      <span>Kiểm Tra</span>
+    </button>
+    <div class="alert" id="bi-alert"></div>
+    <div class="result-box" id="bi-result">
+      <div class="result-head">
+        <span class="result-head-label">BIND INFORMATION</span>
+        <span class="result-status" id="bi-status"></span>
+      </div>
+      <div class="result-body" id="bi-body"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PANEL: CHANGE BIND ══════════ -->
+  <div class="panel" id="panel-change-bind">
+    <div class="panel-title">🔄 Đổi Email Bind</div>
+    <div class="steps">
+      <div class="step-item active" id="cb-s1"><div class="step-dot">1</div><div class="step-label">Token & Email</div></div>
+      <div class="step-item" id="cb-s2"><div class="step-dot">2</div><div class="step-label">OTP Email Cũ</div></div>
+      <div class="step-item" id="cb-s3"><div class="step-dot">3</div><div class="step-label">OTP Email Mới</div></div>
+      <div class="step-item" id="cb-s4"><div class="step-dot">✓</div><div class="step-label">Hoàn Tất</div></div>
+    </div>
+    <!-- Step 1 -->
+    <div id="cb-form1">
+      <div class="field"><label>Access Token</label><input type="password" id="cb-token" placeholder="Access token..."></div>
+      <div class="field"><label>Email Cũ</label><input type="email" id="cb-old-email" placeholder="email_cu@gmail.com"></div>
+      <div class="field"><label>Email Mới</label><input type="email" id="cb-new-email" placeholder="email_moi@gmail.com"></div>
+      <button class="btn btn-primary btn-full" onclick="changeBind1()">Gửi OTP Email Cũ →</button>
+    </div>
+    <!-- Step 2 -->
+    <div id="cb-form2" style="display:none">
+      <div class="alert alert-info visible">📩 OTP đã gửi tới email cũ. Kiểm tra hộp thư.</div>
+      <div class="field" style="margin-top:16px"><label>OTP từ Email Cũ</label><input type="text" id="cb-otp1" placeholder="6 chữ số..." maxlength="8"></div>
+      <button class="btn btn-primary btn-full" onclick="changeBind2()">Xác Minh & Gửi OTP Email Mới →</button>
+    </div>
+    <!-- Step 3 -->
+    <div id="cb-form3" style="display:none">
+      <div class="alert alert-info visible">📩 OTP đã gửi tới email mới. Kiểm tra hộp thư.</div>
+      <div class="field" style="margin-top:16px"><label>OTP từ Email Mới</label><input type="text" id="cb-otp2" placeholder="6 chữ số..." maxlength="8"></div>
+      <button class="btn btn-primary btn-full" onclick="changeBind3()">Hoàn Tất Đổi Bind →</button>
+    </div>
+    <div class="alert" id="cb-alert"></div>
+  </div>
+
+  <!-- ══════════ PANEL: UNBIND EMAIL ══════════ -->
+  <div class="panel" id="panel-unbind-email">
+    <div class="panel-title">🔓 Gỡ Bind Email</div>
+    <div class="steps">
+      <div class="step-item active" id="ub-s1"><div class="step-dot">1</div><div class="step-label">Token & Email</div></div>
+      <div class="step-item" id="ub-s2"><div class="step-dot">2</div><div class="step-label">OTP Xác Nhận</div></div>
+      <div class="step-item" id="ub-s3"><div class="step-dot">✓</div><div class="step-label">Hoàn Tất</div></div>
+    </div>
+    <div id="ub-form1">
+      <div class="field"><label>Access Token</label><input type="password" id="ub-token" placeholder="Access token..."></div>
+      <div class="field"><label>Email Cần Gỡ</label><input type="email" id="ub-email" placeholder="email@gmail.com"></div>
+      <button class="btn btn-danger btn-full" onclick="unbindEmail1()">Gửi OTP →</button>
+    </div>
+    <div id="ub-form2" style="display:none">
+      <div class="alert alert-info visible">📩 OTP đã gửi. Kiểm tra hộp thư email.</div>
+      <div class="field" style="margin-top:16px"><label>Nhập OTP</label><input type="text" id="ub-otp" placeholder="6 chữ số..." maxlength="8"></div>
+      <button class="btn btn-danger btn-full" onclick="unbindEmail2()">Gỡ Bind →</button>
+    </div>
+    <div class="alert" id="ub-alert"></div>
+  </div>
+
+  <!-- ══════════ PANEL: CANCEL BIND ══════════ -->
+  <div class="panel" id="panel-cancel-bind">
+    <div class="panel-title">✖️ Hủy Yêu Cầu Bind</div>
+    <div class="field"><label>Access Token</label><input type="password" id="cn-token" placeholder="Access token..."></div>
+    <button class="btn btn-danger btn-full" onclick="doCancelBind()">Hủy Yêu Cầu</button>
+    <div class="alert" id="cn-alert"></div>
+    <div class="result-box" id="cn-result">
+      <div class="result-head">
+        <span class="result-head-label">CANCEL BIND</span>
+        <span class="result-status" id="cn-status"></span>
+      </div>
+      <div class="result-body" id="cn-body"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PANEL: LOGOUT ══════════ -->
+  <div class="panel" id="panel-logout">
+    <div class="panel-title">🚪 Logout Token</div>
+    <div class="field"><label>Access Token</label><input type="password" id="lo-token" placeholder="Access token..."></div>
+    <button class="btn btn-danger btn-full" onclick="doLogout()">Logout Tất Cả Thiết Bị</button>
+    <div class="alert" id="lo-alert"></div>
+    <div class="result-box" id="lo-result">
+      <div class="result-head">
+        <span class="result-head-label">LOGOUT RESULT</span>
+        <span class="result-status" id="lo-status"></span>
+      </div>
+      <div class="result-body" id="lo-body"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PANEL: EAT CONVERT ══════════ -->
+  <div class="panel" id="panel-eat-convert">
+    <div class="panel-title">🔑 EAT → Access Token</div>
+    <div class="field"><label>EAT Token</label><input type="password" id="eat-token" placeholder="Dán EAT token..."></div>
+    <button class="btn btn-primary btn-full" onclick="doEatConvert()">Chuyển Đổi</button>
+    <div class="alert" id="eat-alert"></div>
+    <div class="result-box" id="eat-result">
+      <div class="result-head">
+        <span class="result-head-label">ACCESS TOKEN</span>
+        <span class="result-status ok">✓ SUCCESS</span>
+      </div>
+      <div class="result-body">
+        <div class="token-display" id="eat-output">
+          <button class="copy-btn" onclick="copyText('eat-output-val', this)">COPY</button>
+          <span id="eat-output-val"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PANEL: CHECK PLATFORM ══════════ -->
+  <div class="panel" id="panel-check-platform">
+    <div class="panel-title">🔗 Check Liên Kết Nền Tảng</div>
+    <div class="field"><label>Access Token</label><input type="password" id="cp-token" placeholder="Access token..."></div>
+    <button class="btn btn-primary btn-full" onclick="doCheckPlatform()">Kiểm Tra Liên Kết</button>
+    <div class="alert" id="cp-alert"></div>
+    <div class="result-box" id="cp-result">
+      <div class="result-head">
+        <span class="result-head-label">PLATFORM LINKS</span>
+        <span class="result-status ok" id="cp-status"></span>
+      </div>
+      <div class="result-body" id="cp-body"></div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<!-- FOOTER -->
+<footer>
+  FF TOOL · WEB EDITION · GARENA ACCOUNT MANAGER · 2025
+</footer>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">⚠ XÁC NHẬN GỠ LIÊN KẾT</div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Huỷ</button>
+      <button class="btn btn-danger" id="modal-confirm">Xác Nhận Gỡ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ══════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════
+function setLoading(btnEl, loading) {
+  if (loading) {
+    btnEl._txt = btnEl.innerHTML;
+    btnEl.innerHTML = '<span class="loader"><span></span><span></span><span></span></span>';
+    btnEl.disabled = true;
+  } else {
+    btnEl.innerHTML = btnEl._txt;
+    btnEl.disabled = false;
+  }
+}
+
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = `alert alert-${type} visible`;
+  el.textContent = msg;
+}
+function hideAlert(id) {
+  document.getElementById(id).className = 'alert';
+}
+
+function showResult(boxId, statusId, statusTxt, isOk, bodyHtml) {
+  const box = document.getElementById(boxId);
+  box.classList.add('visible');
+  if (statusId) {
+    const s = document.getElementById(statusId);
+    s.textContent = statusTxt;
+    s.className = 'result-status ' + (isOk ? 'ok' : 'err');
+  }
+  if (bodyHtml !== null) document.getElementById(boxId.replace('result','body')).innerHTML = bodyHtml;
+}
+
+function infoRow(key, val, cls='') {
+  return `<div class="info-row">
+    <div class="info-key">${key}</div>
+    <div class="info-val ${cls}">${val}</div>
+  </div>`;
+}
+
+async function post(url, data) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  return r.json();
+}
+
+function copyText(elId, btn) {
+  const txt = document.getElementById(elId).textContent.trim();
+  navigator.clipboard.writeText(txt).then(() => {
+    btn.textContent = 'COPIED!';
+    setTimeout(() => btn.textContent = 'COPY', 1500);
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  BIND INFO
+// ══════════════════════════════════════════════════
+async function doBindInfo() {
+  const btn = document.getElementById('bi-btn');
+  const token = document.getElementById('bi-token').value.trim();
+  if (!token) { showAlert('bi-alert','error','⚠ Vui lòng nhập token'); return; }
+  hideAlert('bi-alert');
+  setLoading(btn, true);
+  try {
+    const res = await post('/api/bind-info', {token});
+    setLoading(btn, false);
+    if (!res.ok) { showAlert('bi-alert','error','✘ ' + res.error); return; }
+    const d = res.data;
+    const body = `
+      ${infoRow('Open ID',    d.open_id,    'cyan')}
+      ${infoRow('Account ID', d.account_id, 'cyan')}
+      ${infoRow('Nền tảng',   d.platform,   'yellow')}
+      ${infoRow('Trạng thái', d.bound ? '✓ ĐÃ BIND' : '✘ CHƯA BIND', d.bound ? 'green' : 'red')}
+      ${infoRow('Email hiện tại', d.email || '—', d.email ? '' : 'red')}
+      ${d.email_to_be ? infoRow('Email đang chờ', d.email_to_be, 'yellow') : ''}
+      ${d.countdown_fmt ? infoRow('Countdown', d.countdown_fmt, 'yellow') : ''}
+      ${d.mobile ? infoRow('Mobile', d.mobile) : ''}
+      ${d.mobile_to_be ? infoRow('Mobile mới', d.mobile_to_be, 'yellow') : ''}
+    `;
+    showResult('bi-result', 'bi-status',
+      d.bound ? '✓ BOUND' : '✘ UNBOUND', d.bound, body);
+  } catch(e) {
+    setLoading(btn, false);
+    showAlert('bi-alert','error','✘ Lỗi kết nối: ' + e.message);
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  CHANGE BIND
+// ══════════════════════════════════════════════════
+let cbSid = null;
+
+function cbStep(n) {
+  [1,2,3,4].forEach(i => {
+    const s = document.getElementById('cb-s'+i);
+    if (!s) return;
+    s.className = 'step-item' + (i < n ? ' done' : i === n ? ' active' : '');
+  });
+  ['cb-form1','cb-form2','cb-form3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = i+1 === n ? 'block' : 'none';
+  });
+}
+
+async function changeBind1() {
+  const token = document.getElementById('cb-token').value.trim();
+  const old_email = document.getElementById('cb-old-email').value.trim();
+  const new_email = document.getElementById('cb-new-email').value.trim();
+  if (!token || !old_email || !new_email) {
+    showAlert('cb-alert','error','⚠ Vui lòng điền đủ thông tin'); return;
+  }
+  hideAlert('cb-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/change-bind/step1', {token, old_email, new_email});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('cb-alert','error','✘ ' + res.error); return; }
+  cbSid = res.data.sid;
+  cbStep(2);
+  showAlert('cb-alert','info','✓ ' + res.data.message);
+}
+
+async function changeBind2() {
+  const otp = document.getElementById('cb-otp1').value.trim();
+  if (!otp) { showAlert('cb-alert','error','⚠ Nhập OTP'); return; }
+  hideAlert('cb-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/change-bind/step2', {sid: cbSid, otp});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('cb-alert','error','✘ ' + res.error); return; }
+  cbStep(3);
+  showAlert('cb-alert','info','✓ ' + res.data.message);
+}
+
+async function changeBind3() {
+  const otp = document.getElementById('cb-otp2').value.trim();
+  if (!otp) { showAlert('cb-alert','error','⚠ Nhập OTP'); return; }
+  hideAlert('cb-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/change-bind/step3', {sid: cbSid, otp});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('cb-alert','error','✘ ' + res.error); return; }
+  cbSid = null;
+  cbStep(4);
+  showAlert('cb-alert', res.data.success ? 'success' : 'error',
+    (res.data.success ? '✓ ' : '✘ ') + res.data.message);
+}
+
+// ══════════════════════════════════════════════════
+//  UNBIND EMAIL
+// ══════════════════════════════════════════════════
+let ubSid = null;
+
+function ubStep(n) {
+  [1,2,3].forEach(i => {
+    const s = document.getElementById('ub-s'+i);
+    if (!s) return;
+    s.className = 'step-item' + (i < n ? ' done' : i === n ? ' active' : '');
+  });
+  ['ub-form1','ub-form2'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = i+1 === n ? 'block' : 'none';
+  });
+}
+
+async function unbindEmail1() {
+  const token = document.getElementById('ub-token').value.trim();
+  const email = document.getElementById('ub-email').value.trim();
+  if (!token || !email) { showAlert('ub-alert','error','⚠ Thiếu token hoặc email'); return; }
+  hideAlert('ub-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/unbind-email/step1', {token, email});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('ub-alert','error','✘ ' + res.error); return; }
+  ubSid = res.data.sid;
+  ubStep(2);
+  showAlert('ub-alert','info','✓ ' + res.data.message);
+}
+
+async function unbindEmail2() {
+  const otp = document.getElementById('ub-otp').value.trim();
+  if (!otp) { showAlert('ub-alert','error','⚠ Nhập OTP'); return; }
+  hideAlert('ub-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/unbind-email/step2', {sid: ubSid, otp});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('ub-alert','error','✘ ' + res.error); return; }
+  ubSid = null;
+  ubStep(3);
+  showAlert('ub-alert', res.data.success ? 'success' : 'error',
+    (res.data.success ? '✓ ' : '✘ ') + res.data.message);
+}
+
+// ══════════════════════════════════════════════════
+//  CANCEL BIND
+// ══════════════════════════════════════════════════
+async function doCancelBind() {
+  const token = document.getElementById('cn-token').value.trim();
+  if (!token) { showAlert('cn-alert','error','⚠ Nhập token'); return; }
+  hideAlert('cn-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/cancel-bind', {token});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('cn-alert','error','✘ ' + res.error); return; }
+  const d = res.data;
+  const body = infoRow('Kết quả', d.success ? '✓ Hủy thành công' : '✘ Thất bại', d.success ? 'green' : 'red');
+  showResult('cn-result','cn-status', d.success ? '✓ SUCCESS' : '✘ FAILED', d.success, body);
+}
+
+// ══════════════════════════════════════════════════
+//  LOGOUT
+// ══════════════════════════════════════════════════
+async function doLogout() {
+  const token = document.getElementById('lo-token').value.trim();
+  if (!token) { showAlert('lo-alert','error','⚠ Nhập token'); return; }
+  hideAlert('lo-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/logout', {token});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('lo-alert','error','✘ ' + res.error); return; }
+  const d = res.data;
+  const body = `
+    ${infoRow('Nickname',      d.nickname,   'cyan')}
+    ${infoRow('Game Server',   d.game_status == 200 ? '✓ 200 OK' : '✘ '+d.game_status,   d.game_status==200?'green':'red')}
+    ${infoRow('Garena OAuth',  d.garena_status == 200 ? '✓ 200 OK' : '✘ '+d.garena_status, d.garena_status==200?'green':'red')}
+  `;
+  showResult('lo-result','lo-status', d.success ? '✓ LOGGED OUT' : '✘ FAILED', d.success, body);
+}
+
+// ══════════════════════════════════════════════════
+//  EAT CONVERT
+// ══════════════════════════════════════════════════
+async function doEatConvert() {
+  const eat_token = document.getElementById('eat-token').value.trim();
+  if (!eat_token) { showAlert('eat-alert','error','⚠ Nhập EAT token'); return; }
+  hideAlert('eat-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/eat-convert', {eat_token});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('eat-alert','error','✘ ' + res.error); return; }
+  document.getElementById('eat-output-val').textContent = res.data.access_token;
+  document.getElementById('eat-result').classList.add('visible');
+}
+
+// ══════════════════════════════════════════════════
+//  CHECK PLATFORM
+// ══════════════════════════════════════════════════
+let cpSid = null;
+
+async function doCheckPlatform() {
+  const token = document.getElementById('cp-token').value.trim();
+  if (!token) { showAlert('cp-alert','error','⚠ Nhập token'); return; }
+  hideAlert('cp-alert');
+  const btn = event.target;
+  setLoading(btn, true);
+  const res = await post('/api/check-platform', {token});
+  setLoading(btn, false);
+  if (!res.ok) { showAlert('cp-alert','error','✘ ' + res.error); return; }
+  const d = res.data;
+  cpSid = d.sid;
+
+  let body = `
+    ${infoRow('Nickname',   d.nickname,   'cyan')}
+    ${infoRow('Account ID', d.account_id, 'cyan')}
+    ${infoRow('Nền tảng',   d.platform,   'yellow')}
+  `;
+
+  if (d.bounded && d.bounded.length > 0) {
+    body += `<div style="margin:14px 0 8px;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--text-dim)">ĐANG LIÊN KẾT</div>`;
+    body += `<div class="platform-list">`;
+    d.bounded.forEach(p => {
+      body += `<div class="platform-item">
+        <div class="platform-info">
+          <div class="platform-name">${p.platform_name}</div>
+          <div class="platform-uid">UID: ${p.uid}</div>
+          ${p.nickname ? `<div class="platform-nick">👤 ${p.nickname}</div>` : ''}
+          ${p.email    ? `<div class="platform-uid">📧 ${p.email}</div>` : ''}
+        </div>
+        <button class="btn-unbind" onclick="confirmUnbind(${p.pid},'${p.uid}','${p.platform_name}')">
+          🗑 Gỡ
+        </button>
+      </div>`;
+    });
+    body += `</div>`;
+  } else {
+    body += infoRow('Liên kết', 'Chưa liên kết nền tảng nào', 'red');
+  }
+
+  if (d.available && d.available.length > 0) {
+    body += `<div style="margin-top:14px">` + infoRow('Có thể thêm', d.available.join(', '), 'yellow') + `</div>`;
+  }
+
+  showResult('cp-result', 'cp-status',
+    `✓ ${(d.bounded||[]).length} LINKS`, true, body);
+}
+
+// ── Confirm unbind modal ──
+function confirmUnbind(pid, uid, pname) {
+  document.getElementById('modal-body').innerHTML =
+    `Bạn có chắc muốn gỡ liên kết <strong>${pname}</strong>?<br><br>UID: <strong>${uid}</strong><br><br>⚠️ Hành động này không thể hoàn tác.`;
+  document.getElementById('modal-confirm').onclick = () => doUnbindPlatform(pid, uid, pname);
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+async function doUnbindPlatform(pid, uid, pname) {
+  closeModal();
+  showAlert('cp-alert','info','⏳ Đang gỡ liên kết ' + pname + '...');
+  const res = await post('/api/unbind-platform', {sid: cpSid, pid, uid});
+  if (!res.ok) { showAlert('cp-alert','error','✘ ' + res.error); return; }
+  showAlert('cp-alert','success','✓ ' + res.data.message);
+  // Refresh danh sách
+  setTimeout(() => doCheckPlatform(), 500);
+}
+
+// ══════════════════════════════════════════════════
+//  ENTER KEY shortcuts
+// ══════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const active = document.querySelector('.panel.active');
+  if (!active) return;
+  const btns = active.querySelectorAll('.btn-primary, .btn-danger');
+  const visibleBtns = Array.from(btns).filter(b => b.offsetParent !== null && !b.disabled);
+  if (visibleBtns.length === 1) visibleBtns[0].click();
+});
+</script>
+</body>
+</html>
